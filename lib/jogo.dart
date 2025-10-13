@@ -16,25 +16,48 @@ class Jogo extends StatefulWidget {
 }
 
 class _JogoState extends State<Jogo> {
-  @override
+
   List<String> _voidWord = ["","","","","","","","","",""];
-  String _wordChoice = "word5";
+  String _wordChoice = "TESTETESTE";
   List<String> _wordUserTest = ["","","","","","","","","",""];
   int _cont = 0;
+  int num_tentativa = 1; // <-- manter como campo de estado, use diretamente
   Color _KeyboardColorButton = Color.fromARGB(74, 85, 95, 77);
 
-  Widget _letterWorld(int letters,String char){
+    Widget _letterWorld(int letters, String char, {Color? color}) {
     return Container(
-          color: const Color.fromARGB(74, 85, 95, 77),
-          child: SizedBox(
-          width: 500/letters,
-          height: 500/letters,
-          child:Center(
-            child: Text(char,style: TextStyle(fontSize: 50- 2*letters.toDouble(),color: Colors.white),)
-          ) 
+      color: color ?? const Color.fromARGB(74, 85, 95, 77), // cor padrão
+      child: SizedBox(
+        width: 500 / letters,
+        height: 500 / letters,
+        child: Center(
+          child: Text(
+            char,
+            style: TextStyle(
+              fontSize: 50 - 2 * letters.toDouble(),
+              color: Colors.white,
+            ),
+          ),
         ),
-        );
+      ),
+    );
   }
+
+  List<Color> _verificaTentativa(List<String> tentativa) {
+  List<Color> cores = List.filled(widget._numLetters, Colors.grey);
+  List<String> palavraCerta = _wordChoice.split('');
+
+  for (int i = 0; i < widget._numLetters; i++) {
+    if (tentativa[i] == palavraCerta[i]) {
+      cores[i] = Colors.green;
+    } else if (palavraCerta.contains(tentativa[i])) {
+      cores[i] = Colors.amber;
+    }
+  }
+
+  return cores;
+}
+
 
 
   Widget _WorldFive(){
@@ -204,49 +227,92 @@ class _JogoState extends State<Jogo> {
     });
   }
 
-  void _compareWord(int cont,int size,List<String> wordTest,List<String> trueWord){
-    if(size == cont){
-
-    }
+  Widget _tentativas(){
+    return _ChoiceNumLetters(widget._numLetters, _WorldFive(), _WorldSix(), _WorldSeven(), _WorldEight(), _WorldNine(), _WorldTen());
   }
 
-  Widget _ButtonKeyboard(String char){
-    if(char == "DELETE" || char == "ENTER"){
+  Widget _editTentativas(Widget tentativa){
+
+    return SizedBox(
+      width: 300,
+      height: 50,
+      child: FittedBox(
+        fit: BoxFit.fitWidth,
+        alignment: Alignment.center,
+        child: tentativa,
+      ),
+    );
+  }
+
+
+  List<Widget> tentativas = [Text("tentativas",style: TextStyle(fontSize: 25,color: Colors.white),),
+  Text(""),
+  Text(""),
+  Text(""),
+  Text(""),
+  Text(""),
+  Text(""),
+  Text(""),
+  Text(""),
+  Text(""),
+  Text(""),];
+
+
+  Widget _ButtonKeyboard(String char,) {
+    if (char == "DELETE" || char == "ENTER") {
       return Container(
-          color: const Color.fromARGB(74, 85, 95, 77),
-          child: SizedBox(
+        color: const Color.fromARGB(74, 85, 95, 77),
+        child: SizedBox(
           width: 100,
           height: 50,
-          child:Center(
-            child: TextButton(onPressed: (){
-              if(char == "DELETE"){
-                _wordDelet();
-                print(_cont);
-              }
-              else{
-
-              }
-              setState(() {});
-            }, child: Text(char,style: TextStyle(color: Colors.white,fontSize: 20),))
-          ) 
+          child: Center(
+            child: TextButton(
+              onPressed: () {
+                if (char == "DELETE") {
+                  _wordDelet();
+                } else {
+                  if (num_tentativa >= 0 && num_tentativa < tentativas.length) {
+                    List<Color> cores = _verificaTentativa(_voidWord);
+                    tentativas[num_tentativa] = _editTentativas(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(widget._numLetters, (i) {
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 5),
+                            child: _letterWorld(widget._numLetters, _voidWord[i], color: cores[i]),
+                          );
+                        }),
+                      ),
+                    );
+                  }
+                  setState(() {
+                    num_tentativa += 1;
+                  });
+                }
+              },
+              child: Text(char, style: TextStyle(color: Colors.white, fontSize: 20)),
+            ),
+          ),
         ),
-        );
+      );
     }
+
     return Container(
-          color: _KeyboardColorButton,
-          child: SizedBox(
-          width: 50,
-          height: 50,
-          child:Center(
-            child: TextButton(onPressed: (){
+      color: _KeyboardColorButton,
+      child: SizedBox(
+        width: 50,
+        height: 50,
+        child: Center(
+          child: TextButton(
+            onPressed: () {
               _writesWord(char);
-              print(_voidWord);
-              print(_cont);
-              setState(() {});}, 
-            child: Text(char,style: TextStyle(color: Colors.white,fontSize: 20),))
-          ) 
+              setState(() {});
+            },
+            child: Text(char, style: TextStyle(color: Colors.white, fontSize: 20)),
+          ),
         ),
-        );
+      ),
+    );
   }
 
   Widget _keyboardTop(){
@@ -350,14 +416,50 @@ class _JogoState extends State<Jogo> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         
         children: [
-        _ChoiceNumLetters(widget._numLetters, _WorldFive(), _WorldSix(), _WorldSeven(), _WorldEight(), _WorldNine(), _WorldTen()),
+          Container(
+            child:
+            Column(
+              children: [
+                _ChoiceNumLetters(widget._numLetters, _WorldFive(), _WorldSix(), _WorldSeven(), _WorldEight(), _WorldNine(), _WorldTen()),
+                Padding(padding: EdgeInsetsGeometry.only(),
+                    child: tentativas[0]),
+              ],
+            ) ,
+          ),
+        Container(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Column(
+                children: [
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[1],),
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[2],),
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[3],),
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[4],),
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[5],),
+              ],),
+              Column(
+                children: [
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[6],),
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[7],),
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[8],),
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[9],),
+                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[10],),
+              ],),
+            ],
+          ),
+        ),
         Container(
           child: Column(
             children: [
-              _keyboardTop(),
-              _keyboardMid(),
-              _keyboardBottom(),
-              _keyboardDelEnt()
+              Padding(padding: EdgeInsetsGeometry.only(),
+              child: Column(
+                children: [
+                _keyboardTop(),
+                _keyboardMid(),
+                _keyboardBottom(),
+                _keyboardDelEnt()],
+              ),)
             ],
           ),
         )
