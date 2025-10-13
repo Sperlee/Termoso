@@ -18,7 +18,7 @@ class Jogo extends StatefulWidget {
 class _JogoState extends State<Jogo> {
 
   List<String> _voidWord = ["","","","","","","","","",""];
-  String _wordChoice = "TESTETESTE";
+  String _wordChoice = "TESTETESTE",_venceu = "";
   List<String> _wordUserTest = ["","","","","","","","","",""];
   int _cont = 0;
   int num_tentativa = 1; // <-- manter como campo de estado, use diretamente
@@ -44,17 +44,23 @@ class _JogoState extends State<Jogo> {
   }
 
   List<Color> _verificaTentativa(List<String> tentativa) {
-  List<Color> cores = List.filled(widget._numLetters, Colors.grey);
+  List<Color> cores = List.filled(widget._numLetters, const Color.fromARGB(103, 0, 0, 0));
   List<String> palavraCerta = _wordChoice.split('');
-
+  int cont = 0;
   for (int i = 0; i < widget._numLetters; i++) {
     if (tentativa[i] == palavraCerta[i]) {
+      cont += 1;
       cores[i] = Colors.green;
     } else if (palavraCerta.contains(tentativa[i])) {
       cores[i] = Colors.amber;
     }
   }
-
+  if(cont == widget._numLetters){
+    _venceu = "Parabens a palavra era ${_wordChoice}";
+    setState(() {
+      
+    });
+  }
   return cores;
 }
 
@@ -225,10 +231,6 @@ class _JogoState extends State<Jogo> {
       _cont = _cont - 1;
       _voidWord[_cont] = "";
     });
-  }
-
-  Widget _tentativas(){
-    return _ChoiceNumLetters(widget._numLetters, _WorldFive(), _WorldSix(), _WorldSeven(), _WorldEight(), _WorldNine(), _WorldTen());
   }
 
   Widget _editTentativas(Widget tentativa){
@@ -455,6 +457,7 @@ class _JogoState extends State<Jogo> {
               Padding(padding: EdgeInsetsGeometry.only(),
               child: Column(
                 children: [
+                Text(_venceu,style: TextStyle(fontSize: 20,color: Colors.white),),
                 _keyboardTop(),
                 _keyboardMid(),
                 _keyboardBottom(),
