@@ -1,4 +1,4 @@
-# Termoso
+# 🔠 Termoso
 
 ## Termoso é uma mistura dos jogos Termo com Letroso.
 
