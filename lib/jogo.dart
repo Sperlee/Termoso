@@ -354,7 +354,7 @@ List<Color> _verificaTentativa(List<String> tentativa) {
                   setState(() {
                     num_tentativa += 1;
                     if(num_tentativa  == _chances){
-                      _venceu = "Você perdeu";
+                      _venceu = "Você perdeu a palavra era ${widget._wordChoice}";
                       permissao = false;
                       tentativas[0] = Padding(padding: EdgeInsetsGeometry.only(top: 40),
               child: TextButton(
