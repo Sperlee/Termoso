@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:letroso_app/home.dart';
+import 'dart:math';
 
 class Jogo extends StatefulWidget {
   
-  String _user = "",_dificulty = "";
+  String _user = "",_dificulty = "",_wordChoice = "";
   int _numLetters = 5;
-  Jogo(String user,String dificulty,int letters){
+  Jogo(String user,String dificulty,String word,int letters){
     this._user = user;
     this._dificulty = dificulty;
     this._numLetters = letters;
+    this._wordChoice = word;
   }
 
   @override
@@ -18,34 +20,43 @@ class Jogo extends StatefulWidget {
 class _JogoState extends State<Jogo> {
 
   List<String> _voidWord = ["","","","","","","","","",""];
-  String _wordChoice = "TESTETESTE",_venceu = "";
-  List<String> _wordUserTest = ["","","","","","","","","",""];
+  String _venceu = "";
   int _cont = 0;
   int num_tentativa = 1; // <-- manter como campo de estado, use diretamente
   Color _KeyboardColorButton = Color.fromARGB(74, 85, 95, 77);
+  Random random = Random();
 
-    Widget _letterWorld(int letters, String char, {Color? color}) {
-    return Container(
-      color: color ?? const Color.fromARGB(74, 85, 95, 77), // cor padrão
-      child: SizedBox(
-        width: 500 / letters,
-        height: 500 / letters,
-        child: Center(
-          child: Text(
-            char,
-            style: TextStyle(
-              fontSize: 50 - 2 * letters.toDouble(),
-              color: Colors.white,
-            ),
+  String _randomWord(List<String> wordList,int num_Letters){
+    String palavra = "";
+    int i = random.nextInt(wordList.length);
+    while(num_Letters != wordList[i].length){
+      i = random.nextInt(wordList.length);
+    }
+    return wordList[i];
+  }
+
+  Widget _letterWorld(int letters, String char, {Color? color}) {
+  return Container(
+    color: color ?? const Color.fromARGB(74, 85, 95, 77), // cor padrão
+    child: SizedBox(
+      width: 500 / letters,
+      height: 500 / letters,
+      child: Center(
+        child: Text(
+          char,
+          style: TextStyle(
+            fontSize: 50 - 2 * letters.toDouble(),
+            color: Colors.white,
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   List<Color> _verificaTentativa(List<String> tentativa) {
   List<Color> cores = List.filled(widget._numLetters, const Color.fromARGB(103, 0, 0, 0));
-  List<String> palavraCerta = _wordChoice.split('');
+  List<String> palavraCerta = widget._wordChoice.split('');
   int cont = 0;
   for (int i = 0; i < widget._numLetters; i++) {
     if (tentativa[i] == palavraCerta[i]) {
@@ -56,7 +67,7 @@ class _JogoState extends State<Jogo> {
     }
   }
   if(cont == widget._numLetters){
-    _venceu = "Parabens a palavra era ${_wordChoice}";
+    _venceu = "Parabens a palavra era ${widget._wordChoice}";
     setState(() {
       
     });

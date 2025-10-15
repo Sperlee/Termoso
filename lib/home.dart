@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:letroso_app/jogo.dart';
 
@@ -16,6 +18,16 @@ class _HomeState extends State<Home> {
   TextEditingController _user = TextEditingController();
   String _selectedDifficulty = 'Fácil';
   int _numberOfLetters = 5;
+  List<String> _wordList = [
+  "DOCEU", "VENTO", "FLORIR", "CASAS", "BRISA",
+  "CAMINH", "AMIGOS", "CIDADE", "SORRIS", "GALHOS",
+  "PLANETA", "CORAGEM", "HISTORIA", "AMIZADE", "VITORIA",
+  "LIBERDAD", "AMIZADES", "FANTASIA", "FLORISTA", "BRASILE",
+  "ESPERANCA", "LIBERDADE", "SOLIDARIO", "HARMONIA", "NATUREZA",
+  "IMAGINACAO", "HONESTIDAD", "PROSPERIDA", "CURIOSIDAD", "RESPONSABI"
+];
+  String wordChoice = "";
+  Random random = Random();
 
   void _register(){
     print("Nome: ${_user.text}");
@@ -28,6 +40,8 @@ class _HomeState extends State<Home> {
         color: Colors.white,
         fontSize: x),));
   }
+
+  
   Widget _buttonRadioDifficulty(String difficulty){
     return RadioListTile<String>(
       value: difficulty,
@@ -52,6 +66,15 @@ class _HomeState extends State<Home> {
       contentPadding: EdgeInsets.zero,
     );
   }
+
+  String _randomWord(List<String> wordList,int num_Letters){
+  String palavra = "";
+  int i = random.nextInt(wordList.length);
+  while(num_Letters != wordList[i].length){
+    i = random.nextInt(wordList.length);
+  }
+  return wordList[i];
+}
 
   Widget _buttonRadioNumberLetters(int numOfLetters) {
     return Row(
@@ -187,8 +210,9 @@ class _HomeState extends State<Home> {
                     backgroundColor: C_light_select
                   ),
                   onPressed: (){
+                    wordChoice = _randomWord(_wordList, _numberOfLetters);
                     Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => Jogo(_user.text,_selectedDifficulty,_numberOfLetters)));
+                    MaterialPageRoute(builder: (context) => Jogo(_user.text,_selectedDifficulty,wordChoice,_numberOfLetters)));
                   }, 
                   child: Text(
                     "Iniciar",
