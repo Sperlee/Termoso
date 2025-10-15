@@ -22,9 +22,22 @@ class _JogoState extends State<Jogo> {
   List<String> _voidWord = ["","","","","","","","","",""];
   String _venceu = "";
   int _cont = 0;
-  int num_tentativa = 1; // <-- manter como campo de estado, use diretamente
+  int num_tentativa = 1;
   Color _KeyboardColorButton = Color.fromARGB(74, 85, 95, 77);
   Random random = Random();
+  int _chances = 0;
+  bool permissao = true;
+
+  int _tentativas(String dificuldade){
+    if(dificuldade == "Fácil"){
+      return 11;
+    }else if(dificuldade == "Médio"){
+      return 9;
+    }
+    return 7;
+  }
+  
+
 
   String _randomWord(List<String> wordList,int num_Letters){
     String palavra = "";
@@ -37,7 +50,7 @@ class _JogoState extends State<Jogo> {
 
   Widget _letterWorld(int letters, String char, {Color? color}) {
   return Container(
-    color: color ?? const Color.fromARGB(74, 85, 95, 77), // cor padrão
+    color: color ?? const Color.fromARGB(74, 85, 95, 77),
     child: SizedBox(
       width: 500 / letters,
       height: 500 / letters,
@@ -54,24 +67,60 @@ class _JogoState extends State<Jogo> {
   );
 }
 
-  List<Color> _verificaTentativa(List<String> tentativa) {
+List<Color> _verificaTentativa(List<String> tentativa) {
   List<Color> cores = List.filled(widget._numLetters, const Color.fromARGB(103, 0, 0, 0));
   List<String> palavraCerta = widget._wordChoice.split('');
+
+  Map<String, int> contagem = {};
+
+  for (var letra in palavraCerta) {
+    contagem[letra] = (contagem[letra] ?? 0) + 1;
+  }
+
   int cont = 0;
+
   for (int i = 0; i < widget._numLetters; i++) {
     if (tentativa[i] == palavraCerta[i]) {
-      cont += 1;
       cores[i] = Colors.green;
-    } else if (palavraCerta.contains(tentativa[i])) {
-      cores[i] = Colors.amber;
+      contagem[tentativa[i]] = contagem[tentativa[i]]! - 1;
+      cont++;
     }
   }
-  if(cont == widget._numLetters){
-    _venceu = "Parabens a palavra era ${widget._wordChoice}";
-    setState(() {
-      
-    });
+
+  for (int i = 0; i < widget._numLetters; i++) {
+    if (cores[i] == const Color.fromARGB(103, 0, 0, 0)) {
+      String letra = tentativa[i];
+      if (contagem.containsKey(letra) && contagem[letra]! > 0) {
+        cores[i] = Colors.amber;
+        contagem[letra] = contagem[letra]! - 1;
+      }
+    }
   }
+
+  if (cont == widget._numLetters) {
+    permissao = false;
+    _venceu = "Parabéns! A palavra era ${widget._wordChoice}";
+    tentativas[0] = Padding(
+      padding: EdgeInsets.only(top: 40),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: C_light_select,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        child: Text(
+          "Jogar Novamente",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 50,
+          ),
+        ),
+      ),
+    );
+    setState(() {});
+  }
+
   return cores;
 }
 
@@ -81,15 +130,15 @@ class _JogoState extends State<Jogo> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Padding(padding: EdgeInsetsGeometry.only(top: 50),
+        Padding(padding: EdgeInsetsGeometry.only(top: 10),
         child: _letterWorld(widget._numLetters,_voidWord[0])),
-        Padding(padding: EdgeInsetsGeometry.only(top: 50,left: 10),
+        Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 10),
         child: _letterWorld(widget._numLetters,_voidWord[1])),
-        Padding(padding: EdgeInsetsGeometry.only(top: 50,left: 10),
+        Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 10),
         child: _letterWorld(widget._numLetters,_voidWord[2])),
-        Padding(padding: EdgeInsetsGeometry.only(top: 50,left: 10),
+        Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 10),
         child: _letterWorld(widget._numLetters,_voidWord[3])),
-        Padding(padding: EdgeInsetsGeometry.only(top: 50,left: 10),
+        Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 10),
         child: _letterWorld(widget._numLetters,_voidWord[4])),
       ],
     );
@@ -271,7 +320,7 @@ class _JogoState extends State<Jogo> {
   Text(""),];
 
 
-  Widget _ButtonKeyboard(String char,) {
+  Widget _ButtonKeyboard(String char) {
     if (char == "DELETE" || char == "ENTER") {
       return Container(
         color: const Color.fromARGB(74, 85, 95, 77),
@@ -281,10 +330,14 @@ class _JogoState extends State<Jogo> {
           child: Center(
             child: TextButton(
               onPressed: () {
-                if (char == "DELETE") {
+                _chances = _tentativas(widget._dificulty);
+                if (char == "DELETE" && permissao == true) {
+                  print(permissao);
                   _wordDelet();
                 } else {
-                  if (num_tentativa >= 0 && num_tentativa < tentativas.length) {
+
+                  if (num_tentativa >= 0 && num_tentativa <=  _chances && permissao == true) {
+                    print(permissao);
                     List<Color> cores = _verificaTentativa(_voidWord);
                     tentativas[num_tentativa] = _editTentativas(
                       Row(
@@ -300,6 +353,25 @@ class _JogoState extends State<Jogo> {
                   }
                   setState(() {
                     num_tentativa += 1;
+                    if(num_tentativa  == _chances){
+                      _venceu = "Você perdeu";
+                      permissao = false;
+                      tentativas[0] = Padding(padding: EdgeInsetsGeometry.only(top: 40),
+              child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: C_light_select
+                  ),
+                  onPressed: (){
+                    Navigator.pop(context);
+                  }, 
+                  child: Text(
+                    "Jogar Novamente",
+                    style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 50),
+                  )
+                ));
+                    }
                   });
                 }
               },
@@ -318,7 +390,10 @@ class _JogoState extends State<Jogo> {
         child: Center(
           child: TextButton(
             onPressed: () {
-              _writesWord(char);
+              if(permissao == true){
+                print(permissao);
+                _writesWord(char);
+              }
               setState(() {});
             },
             child: Text(char, style: TextStyle(color: Colors.white, fontSize: 20)),
@@ -333,25 +408,25 @@ class _JogoState extends State<Jogo> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("Q"),),
+  child: _ButtonKeyboard("Q"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("W"),),
+  child: _ButtonKeyboard("W"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("E"),),
+  child: _ButtonKeyboard("E"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("R"),),
+  child: _ButtonKeyboard("R"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("T"),),
+  child: _ButtonKeyboard("T"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("Y"),),
+  child: _ButtonKeyboard("Y"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("U"),),
+  child: _ButtonKeyboard("U"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("I"),),
+  child: _ButtonKeyboard("I"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("O"),),
+  child: _ButtonKeyboard("O"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("P"),),
+  child: _ButtonKeyboard("P"),),
         
       ],
     );
@@ -362,23 +437,23 @@ class _JogoState extends State<Jogo> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("A"),),
+  child: _ButtonKeyboard("A"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("S"),),
+  child: _ButtonKeyboard("S"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("D"),),
+  child: _ButtonKeyboard("D"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("F"),),
+  child: _ButtonKeyboard("F"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("G"),),
+  child: _ButtonKeyboard("G"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("H"),),
+  child: _ButtonKeyboard("H"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("J"),),
+  child: _ButtonKeyboard("J"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("K"),),
+  child: _ButtonKeyboard("K"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("L"),),  
+  child: _ButtonKeyboard("L"),),  
       ],
     );
   }
@@ -388,19 +463,19 @@ class _JogoState extends State<Jogo> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("Z"),),
+  child: _ButtonKeyboard("Z"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("X"),),
+  child: _ButtonKeyboard("X"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("C"),),
+  child: _ButtonKeyboard("C"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("V"),),
+  child: _ButtonKeyboard("V"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("B"),),
+  child: _ButtonKeyboard("B"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("N"),),
+  child: _ButtonKeyboard("N"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("M"),),
+  child: _ButtonKeyboard("M"),),
       ],
     );
   }
@@ -409,9 +484,9 @@ class _JogoState extends State<Jogo> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5),
-        child: _ButtonKeyboard("DELETE"),),
+  child: _ButtonKeyboard("DELETE"),),
         Padding(padding: EdgeInsetsGeometry.only(top: 10,left: 5,right: 5),
-        child: _ButtonKeyboard("ENTER"),)
+  child: _ButtonKeyboard("ENTER"),)
       ]
     );
   }
@@ -426,12 +501,23 @@ class _JogoState extends State<Jogo> {
       body: Container(
         color: const Color.fromARGB(255, 70, 67, 67),
         child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         
         children: [
+          Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      "Bom jogo ${widget._user}",
+                      style: const TextStyle(fontSize: 20, color: Colors.white),
+                    ),
+                  ),
+                ),
           Container(
             child:
             Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _ChoiceNumLetters(widget._numLetters, _WorldFive(), _WorldSix(), _WorldSeven(), _WorldEight(), _WorldNine(), _WorldTen()),
                 Padding(padding: EdgeInsetsGeometry.only(),
@@ -439,30 +525,32 @@ class _JogoState extends State<Jogo> {
               ],
             ) ,
           ),
-        Container(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Column(
-                children: [
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[1],),
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[2],),
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[3],),
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[4],),
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[5],),
-              ],),
-              Column(
-                children: [
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[6],),
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[7],),
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[8],),
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[9],),
-                  Padding(padding: EdgeInsetsGeometry.only(top: widget._numLetters.toDouble()+2),child: tentativas[10],),
-              ],),
-            ],
-          ),
-        ),
-        Container(
+        Container( child: Row( 
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
+          children: [ 
+            Column( 
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
+              children: [ 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[1],), 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[3],), 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[5],), 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[7],), 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[9],), ],), 
+            Column( 
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
+              children: [ 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[2],), 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[4],), 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[6],), 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[8],), 
+                Padding(padding: EdgeInsetsGeometry.only(top: 10),child: tentativas[10],),],), 
+                ],
+              ),
+            ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: 
+          Container(
           child: Column(
             children: [
               Padding(padding: EdgeInsetsGeometry.only(),
@@ -477,8 +565,10 @@ class _JogoState extends State<Jogo> {
             ],
           ),
         )
-      ],),
-      )
+      )],),
+      ),
+    
+        
       
     );
   }
